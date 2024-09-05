@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wire Size Calculator</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a90e2">
+    <link rel="icon" href="icon.png" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+        }
+        .calculator {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4a90e2;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #357abd;
+        }
+        .wire-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .wire-input {
+            flex: 1 0 45%;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9f5ff;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            color: #4a90e2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>Wire Size Calculator</h1>
+        <div class="input-group">
+            <label for="wireCount">Number of Wires (max 6):</label>
+            <input type="number" id="wireCount" min="1" max="6" value="1" onchange="generateInputs()">
+        </div>
+        <div id="wireInputs" class="wire-inputs"></div>
+        <div id="totalArea" class="result"></div>
+        <button onclick="calculateTotalArea()">Calculate Total Area</button>
+        <button onclick="distributeArea()">Distribute Area Equally</button>
+    </div>
+
+    <script>
+        function generateInputs() {
+            const wireCount = document.getElementById('wireCount').value;
+            const inputsArea = document.getElementById('wireInputs');
+            inputsArea.innerHTML = '';
+
+            for (let i = 0; i < wireCount; i++) {
+                inputsArea.innerHTML += `
+                    <div class="wire-input">
+                        <label for="diameter-${i}">Diameter ${i + 1} (mm):</label>
+                        <input type="number" id="diameter-${i}" oninput="calculateArea(${i})" min="0">
+                        <span id="area-${i}" class="calculate-area">Area: 0 mm²</span>
+                    </div>
+                `;
+            }
+        }
+
+        function calculateArea(index) {
+            const diameter = parseFloat(document.getElementById(`diameter-${index}`).value) || 0;
+            const area = Math.PI * Math.pow(diameter / 2, 2);
+            document.getElementById(`area-${index}`).textContent = `Area: ${area.toFixed(2)} mm²`;
+        }
+
+        function calculateTotalArea() {
+            let totalArea = 0;
+            const wireCount = document.getElementById('wireCount').value;
+
+            for (let i = 0; i < wireCount; i++) {
+                const diameter = parseFloat(document.getElementById(`diameter-${i}`).value) || 0;
+                totalArea += Math.PI * Math.pow(diameter / 2, 2);
+            }
+
+            document.getElementById('totalArea').textContent = `Total Area: ${totalArea.toFixed(2)} mm²`;
+        }
+
+        function distributeArea() {
+            const totalArea = parseFloat(document.getElementById('totalArea').textContent.split(': ')[1]) || 0;
+            const wireCount = document.getElementById('wireCount').value;
+            const newArea = totalArea / wireCount;
+
+            for (let i = 0; i < wireCount; i++) {
+                const diameter = Math.sqrt(newArea / Math.PI) * 2;
+                document.getElementById(`diameter-${i}`).value = diameter.toFixed(2);
+                calculateArea(i);
+            }
+        }
+
+        // Initialize the calculator
+        generateInputs();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then((reg) => console.log('Service worker registered', reg))
+                .catch((err) => console.log('Service worker not registered', err));
+        }
+    </script>
+</body>
+</html>
